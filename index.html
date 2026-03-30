@@ -5,46 +5,75 @@
 
 <style>
 body {
-    font-family: Arial;
-    background: #f4f6f8;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+/* Header */
+.header {
+    text-align: center;
+    padding: 20px;
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* Layout */
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
     padding: 20px;
 }
 
-.container {
-    max-width: 700px;
-    margin: auto;
-}
-
+/* Cards */
 .card {
     background: white;
     padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    transition: 0.3s;
 }
 
-input, button {
-    margin: 5px;
-    padding: 8px;
+.card:hover {
+    transform: translateY(-5px);
 }
 
+/* Inputs */
+input {
+    width: 100%;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* Buttons */
 button {
-    background: #007bff;
-    color: white;
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
     border: none;
+    border-radius: 8px;
+    background: #4facfe;
+    color: white;
+    font-weight: bold;
     cursor: pointer;
 }
 
 button:hover {
-    background: #0056b3;
+    background: #007bff;
 }
 
+/* Output */
 #output {
-    white-space: pre-line;
-    background: #222;
+    background: #111;
     color: #0f0;
-    padding: 10px;
-    min-height: 100px;
+    padding: 15px;
+    border-radius: 10px;
+    min-height: 120px;
+    white-space: pre-line;
 }
 </style>
 
@@ -52,13 +81,13 @@ button:hover {
 
 <body>
 
-<div class="container">
+<div class="header">🏥 Clinic Register Dashboard</div>
 
-<h2>🏥 Clinic Register System</h2>
+<div class="container">
 
 <!-- Register -->
 <div class="card">
-<h3>Register Patient</h3>
+<h3>➕ Register Patient</h3>
 <input id="pid" placeholder="ID">
 <input id="pname" placeholder="Name">
 <input id="page" placeholder="Age">
@@ -66,9 +95,9 @@ button:hover {
 <button onclick="registerPatient()">Register</button>
 </div>
 
-<!-- Add Visit -->
+<!-- Visit -->
 <div class="card">
-<h3>Add Visit</h3>
+<h3>🩺 Add Visit</h3>
 <input id="vid" placeholder="Patient ID">
 <input id="vdate" placeholder="DD-MM-YYYY">
 <input id="vdiag" placeholder="Diagnosis">
@@ -78,50 +107,51 @@ button:hover {
 
 <!-- History -->
 <div class="card">
-<h3>View Patient History</h3>
+<h3>📋 Patient History</h3>
 <input id="sid" placeholder="Patient ID">
 <button onclick="getHistory()">Show</button>
 </div>
 
-<!-- Reports -->
+<!-- Frequent -->
 <div class="card">
-<h3>Frequent Visitors</h3>
+<h3>⭐ Frequent Visitors</h3>
 <input id="nvisits" placeholder="Enter N">
 <button onclick="frequentVisitors()">Show</button>
 </div>
 
+<!-- Monthly -->
 <div class="card">
-<h3>Monthly Visits</h3>
+<h3>📅 Monthly Visits</h3>
 <input id="month" placeholder="MM">
 <button onclick="monthlyVisits()">Show</button>
 </div>
 
 <!-- Edit -->
 <div class="card">
-<h3>Edit Patient</h3>
+<h3>✏️ Edit Patient</h3>
 <input id="eid" placeholder="Patient ID">
 <input id="ename" placeholder="New Name">
 <input id="eage" placeholder="New Age">
 <input id="ephone" placeholder="New Phone">
-<button onclick="editPatient()">Edit</button>
+<button onclick="editPatient()">Update</button>
 </div>
 
 <!-- Delete -->
 <div class="card">
-<h3>Delete Patient</h3>
+<h3>❌ Delete Patient</h3>
 <input id="did" placeholder="Patient ID">
 <button onclick="deletePatient()">Delete</button>
 </div>
 
 <!-- Output -->
 <div class="card">
-<h3>Output</h3>
+<h3>💻 Output</h3>
 <div id="output"></div>
 </div>
 
 </div>
 
-<!-- WASM Setup -->
+<!-- WASM -->
 <script>
 var Module = {};
 let ModuleReady = false;
@@ -133,96 +163,46 @@ Module.onRuntimeInitialized = function() {
 
 <script src="clinic.js"></script>
 
-<!-- JS FUNCTIONS -->
 <script>
-
 function registerPatient() {
     if (!ModuleReady) return alert("WASM not loaded");
 
-    let result = Module.ccall(
-        "register_patient",
-        "string",
-        ["number","string","number","string"],
-        [
-            parseInt(pid.value),
-            pname.value,
-            parseInt(page.value),
-            pphone.value
-        ]
-    );
-    output.innerText = result;
+    output.innerText = Module.ccall("register_patient","string",
+    ["number","string","number","string"],
+    [pid.value,pname.value,page.value,pphone.value]);
 }
 
 function addVisit() {
-    let result = Module.ccall(
-        "add_visit",
-        "string",
-        ["number","string","string","string"],
-        [
-            parseInt(vid.value),
-            vdate.value,
-            vdiag.value,
-            vpres.value
-        ]
-    );
-    output.innerText = result;
+    output.innerText = Module.ccall("add_visit","string",
+    ["number","string","string","string"],
+    [vid.value,vdate.value,vdiag.value,vpres.value]);
 }
 
 function getHistory() {
-    let result = Module.ccall(
-        "get_history",
-        "string",
-        ["number"],
-        [parseInt(sid.value)]
-    );
-    output.innerText = result;
+    output.innerText = Module.ccall("get_history","string",
+    ["number"],[sid.value]);
 }
 
 function frequentVisitors() {
-    let result = Module.ccall(
-        "frequent_visitors",
-        "string",
-        ["number"],
-        [parseInt(nvisits.value)]
-    );
-    output.innerText = result;
+    output.innerText = Module.ccall("frequent_visitors","string",
+    ["number"],[nvisits.value]);
 }
 
 function monthlyVisits() {
-    let result = Module.ccall(
-        "visits_this_month",
-        "string",
-        ["string"],
-        [month.value]
-    );
-    output.innerText = result;
+    output.innerText = Module.ccall("visits_this_month","string",
+    ["string"],[month.value]);
 }
 
 function editPatient() {
-    let result = Module.ccall(
-        "edit_patient",
-        "string",
-        ["number","string","number","string"],
-        [
-            parseInt(eid.value),
-            ename.value,
-            parseInt(eage.value),
-            ephone.value
-        ]
-    );
-    output.innerText = result;
+    output.innerText = Module.ccall("edit_patient","string",
+    ["number","string","number","string"],
+    [eid.value,ename.value,eage.value,ephone.value]);
 }
 
 function deletePatient() {
-    let result = Module.ccall(
-        "delete_patient",
-        "string",
-        ["number"],
-        [parseInt(did.value)]
-    );
-    output.innerText = result;
+    output.innerText = Module.ccall("delete_patient","string",
+    ["number"],[did.value]);
 }
-
 </script>
 
 </body>
