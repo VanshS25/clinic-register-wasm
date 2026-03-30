@@ -1762,6 +1762,8 @@ var _add_visit = Module['_add_visit'] = makeInvalidEarlyAccess('_add_visit');
 var _get_history = Module['_get_history'] = makeInvalidEarlyAccess('_get_history');
 var _frequent_visitors = Module['_frequent_visitors'] = makeInvalidEarlyAccess('_frequent_visitors');
 var _visits_this_month = Module['_visits_this_month'] = makeInvalidEarlyAccess('_visits_this_month');
+var _edit_patient = Module['_edit_patient'] = makeInvalidEarlyAccess('_edit_patient');
+var _delete_patient = Module['_delete_patient'] = makeInvalidEarlyAccess('_delete_patient');
 var _fflush = makeInvalidEarlyAccess('_fflush');
 var _strerror = makeInvalidEarlyAccess('_strerror');
 var _emscripten_stack_init = makeInvalidEarlyAccess('_emscripten_stack_init');
@@ -1781,6 +1783,8 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['get_history'] != 'undefined', 'missing Wasm export: get_history');
   assert(typeof wasmExports['frequent_visitors'] != 'undefined', 'missing Wasm export: frequent_visitors');
   assert(typeof wasmExports['visits_this_month'] != 'undefined', 'missing Wasm export: visits_this_month');
+  assert(typeof wasmExports['edit_patient'] != 'undefined', 'missing Wasm export: edit_patient');
+  assert(typeof wasmExports['delete_patient'] != 'undefined', 'missing Wasm export: delete_patient');
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
   assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');
   assert(typeof wasmExports['emscripten_stack_init'] != 'undefined', 'missing Wasm export: emscripten_stack_init');
@@ -1797,6 +1801,8 @@ function assignWasmExports(wasmExports) {
   _get_history = Module['_get_history'] = createExportWrapper('get_history', 1);
   _frequent_visitors = Module['_frequent_visitors'] = createExportWrapper('frequent_visitors', 1);
   _visits_this_month = Module['_visits_this_month'] = createExportWrapper('visits_this_month', 1);
+  _edit_patient = Module['_edit_patient'] = createExportWrapper('edit_patient', 4);
+  _delete_patient = Module['_delete_patient'] = createExportWrapper('delete_patient', 1);
   _fflush = createExportWrapper('fflush', 1);
   _strerror = createExportWrapper('strerror', 1);
   _emscripten_stack_init = wasmExports['emscripten_stack_init'];
