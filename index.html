@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Clinic Register</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f4f6f8;
+    padding: 20px;
+}
+.container {
+    max-width: 600px;
+    margin: auto;
+}
+.card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+input, button {
+    margin: 5px;
+    padding: 8px;
+}
+button {
+    background: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+button:hover {
+    background: #0056b3;
+}
+#output {
+    white-space: pre-line;
+    background: #222;
+    color: #0f0;
+    padding: 10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>🏥 Clinic Register</h2>
+
+<div class="card">
+<h3>Register Patient</h3>
+<input id="pid" placeholder="ID">
+<input id="pname" placeholder="Name">
+<input id="page" placeholder="Age">
+<input id="pphone" placeholder="Phone">
+<button onclick="registerPatient()">Register</button>
+</div>
+
+<div class="card">
+<h3>Add Visit</h3>
+<input id="vid" placeholder="Patient ID">
+<input id="vdate" placeholder="DD-MM-YYYY">
+<input id="vdiag" placeholder="Diagnosis">
+<input id="vpres" placeholder="Prescription">
+<button onclick="addVisit()">Add Visit</button>
+</div>
+
+<div class="card">
+<h3>View History</h3>
+<input id="sid" placeholder="Patient ID">
+<button onclick="getHistory()">Show</button>
+</div>
+
+<div class="card">
+<h3>Output</h3>
+<div id="output"></div>
+</div>
+
+</div>
+
+<script src="clinic.js"></script>
+
+<script>
+let ModuleReady = false;
+
+Module.onRuntimeInitialized = function() {
+    ModuleReady = true;
+};
+
+function registerPatient() {
+    if (!ModuleReady) return alert("WASM not loaded");
+
+    let result = Module.ccall(
+        "register_patient",
+        "string",
+        ["number", "string", "number", "string"],
+        [
+            parseInt(pid.value),
+            pname.value,
+            parseInt(page.value),
+            pphone.value
+        ]
+    );
+
+    output.innerText = result;
+}
+
+function addVisit() {
+    let result = Module.ccall(
+        "add_visit",
+        "string",
+        ["number","string","string","string"],
+        [
+            parseInt(vid.value),
+            vdate.value,
+            vdiag.value,
+            vpres.value
+        ]
+    );
+
+    output.innerText = result;
+}
+
+function getHistory() {
+    let result = Module.ccall(
+        "get_history",
+        "string",
+        ["number"],
+        [parseInt(sid.value)]
+    );
+
+    output.innerText = result;
+}
+</script>
+
+</body>
+</html>
