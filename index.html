@@ -9,10 +9,12 @@ body {
     background: #f4f6f8;
     padding: 20px;
 }
+
 .container {
-    max-width: 600px;
+    max-width: 700px;
     margin: auto;
 }
+
 .card {
     background: white;
     padding: 15px;
@@ -20,24 +22,29 @@ body {
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
 input, button {
     margin: 5px;
     padding: 8px;
 }
+
 button {
     background: #007bff;
     color: white;
     border: none;
     cursor: pointer;
 }
+
 button:hover {
     background: #0056b3;
 }
+
 #output {
     white-space: pre-line;
     background: #222;
     color: #0f0;
     padding: 10px;
+    min-height: 100px;
 }
 </style>
 
@@ -47,8 +54,9 @@ button:hover {
 
 <div class="container">
 
-<h2>🏥 Clinic Register</h2>
+<h2>🏥 Clinic Register System</h2>
 
+<!-- Register -->
 <div class="card">
 <h3>Register Patient</h3>
 <input id="pid" placeholder="ID">
@@ -58,6 +66,7 @@ button:hover {
 <button onclick="registerPatient()">Register</button>
 </div>
 
+<!-- Add Visit -->
 <div class="card">
 <h3>Add Visit</h3>
 <input id="vid" placeholder="Patient ID">
@@ -67,12 +76,44 @@ button:hover {
 <button onclick="addVisit()">Add Visit</button>
 </div>
 
+<!-- History -->
 <div class="card">
-<h3>View History</h3>
+<h3>View Patient History</h3>
 <input id="sid" placeholder="Patient ID">
 <button onclick="getHistory()">Show</button>
 </div>
 
+<!-- Reports -->
+<div class="card">
+<h3>Frequent Visitors</h3>
+<input id="nvisits" placeholder="Enter N">
+<button onclick="frequentVisitors()">Show</button>
+</div>
+
+<div class="card">
+<h3>Monthly Visits</h3>
+<input id="month" placeholder="MM">
+<button onclick="monthlyVisits()">Show</button>
+</div>
+
+<!-- Edit -->
+<div class="card">
+<h3>Edit Patient</h3>
+<input id="eid" placeholder="Patient ID">
+<input id="ename" placeholder="New Name">
+<input id="eage" placeholder="New Age">
+<input id="ephone" placeholder="New Phone">
+<button onclick="editPatient()">Edit</button>
+</div>
+
+<!-- Delete -->
+<div class="card">
+<h3>Delete Patient</h3>
+<input id="did" placeholder="Patient ID">
+<button onclick="deletePatient()">Delete</button>
+</div>
+
+<!-- Output -->
 <div class="card">
 <h3>Output</h3>
 <div id="output"></div>
@@ -80,14 +121,20 @@ button:hover {
 
 </div>
 
-<script src="clinic.js"></script>
-
+<!-- WASM Setup -->
 <script>
+var Module = {};
 let ModuleReady = false;
 
 Module.onRuntimeInitialized = function() {
     ModuleReady = true;
 };
+</script>
+
+<script src="clinic.js"></script>
+
+<!-- JS FUNCTIONS -->
+<script>
 
 function registerPatient() {
     if (!ModuleReady) return alert("WASM not loaded");
@@ -95,7 +142,7 @@ function registerPatient() {
     let result = Module.ccall(
         "register_patient",
         "string",
-        ["number", "string", "number", "string"],
+        ["number","string","number","string"],
         [
             parseInt(pid.value),
             pname.value,
@@ -103,7 +150,6 @@ function registerPatient() {
             pphone.value
         ]
     );
-
     output.innerText = result;
 }
 
@@ -119,7 +165,6 @@ function addVisit() {
             vpres.value
         ]
     );
-
     output.innerText = result;
 }
 
@@ -130,9 +175,54 @@ function getHistory() {
         ["number"],
         [parseInt(sid.value)]
     );
-
     output.innerText = result;
 }
+
+function frequentVisitors() {
+    let result = Module.ccall(
+        "frequent_visitors",
+        "string",
+        ["number"],
+        [parseInt(nvisits.value)]
+    );
+    output.innerText = result;
+}
+
+function monthlyVisits() {
+    let result = Module.ccall(
+        "visits_this_month",
+        "string",
+        ["string"],
+        [month.value]
+    );
+    output.innerText = result;
+}
+
+function editPatient() {
+    let result = Module.ccall(
+        "edit_patient",
+        "string",
+        ["number","string","number","string"],
+        [
+            parseInt(eid.value),
+            ename.value,
+            parseInt(eage.value),
+            ephone.value
+        ]
+    );
+    output.innerText = result;
+}
+
+function deletePatient() {
+    let result = Module.ccall(
+        "delete_patient",
+        "string",
+        ["number"],
+        [parseInt(did.value)]
+    );
+    output.innerText = result;
+}
+
 </script>
 
 </body>
