@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <cctype>
 using namespace std;
 
 // ================= PATIENT =================
@@ -48,7 +49,15 @@ private:
 
 public:
 
-    // ---------- CHECK ----------
+    // ---------- VALIDATION ----------
+    bool isValidPhone(string phone) {
+        if (phone.length() != 10) return false;
+        for (char c : phone) {
+            if (!isdigit(c)) return false;
+        }
+        return true;
+    }
+
     bool patientExists(int id) {
         for (auto &p : patients) {
             if (p.id == id) return true;
@@ -58,6 +67,16 @@ public:
 
     // ---------- REGISTER ----------
     string registerPatient(int id, string name, int age, string phone) {
+
+        if (id <= 0)
+            return "❌ Invalid ID!";
+
+        if (age <= 0)
+            return "❌ Invalid Age!";
+
+        if (!isValidPhone(phone))
+            return "❌ Phone must be exactly 10 digits!";
+
         if (patientExists(id))
             return "❌ Patient ID already exists!";
 
@@ -70,8 +89,8 @@ public:
         if (!patientExists(id))
             return "❌ Patient does not exist!";
 
-        visits.push_back(Visit(id, date, diagnosis, prescription));
-        return "✅ Visit added successfully!";
+        return visits.emplace_back(id, date, diagnosis, prescription),
+               "✅ Visit added successfully!";
     }
 
     // ---------- HISTORY ----------
@@ -130,7 +149,7 @@ public:
         int count = 0;
 
         for (auto &v : visits) {
-            if (v.date.substr(3,2) == month)
+            if (v.date.length() >= 5 && v.date.substr(3,2) == month)
                 count++;
         }
 
@@ -139,6 +158,13 @@ public:
 
     // ---------- EDIT ----------
     string editPatient(int id, string newName, int newAge, string newPhone) {
+
+        if (newAge <= 0)
+            return "❌ Invalid Age!";
+
+        if (!isValidPhone(newPhone))
+            return "❌ Phone must be exactly 10 digits!";
+
         for (auto &p : patients) {
             if (p.id == id) {
                 p.name = newName;
@@ -147,6 +173,7 @@ public:
                 return "✅ Patient updated successfully!";
             }
         }
+
         return "❌ Patient not found!";
     }
 
@@ -154,7 +181,6 @@ public:
     string deletePatient(int id) {
         bool found = false;
 
-        // remove patient
         for (auto it = patients.begin(); it != patients.end(); ++it) {
             if (it->id == id) {
                 patients.erase(it);
@@ -166,7 +192,6 @@ public:
         if (!found)
             return "❌ Patient not found!";
 
-        // remove visits
         visits.erase(
             remove_if(visits.begin(), visits.end(),
                 [id](Visit &v) {
@@ -175,7 +200,7 @@ public:
             visits.end()
         );
 
-        return "✅ Patient and all visits deleted!";
+        return "✅ Patient and visits deleted!";
     }
 };
 
