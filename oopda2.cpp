@@ -3,6 +3,7 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 using namespace std;
 
 // ================= PATIENT =================
@@ -14,7 +15,6 @@ public:
     string phone;
 
     Patient() {}
-
     Patient(int i, string n, int a, string p) {
         id = i;
         name = n;
@@ -32,7 +32,6 @@ public:
     string prescription;
 
     Visit() {}
-
     Visit(int id, string d, string diag, string pres) {
         patientID = id;
         date = d;
@@ -89,8 +88,8 @@ public:
         if (!patientExists(id))
             return "❌ Patient does not exist!";
 
-        return visits.emplace_back(id, date, diagnosis, prescription),
-               "✅ Visit added successfully!";
+        visits.push_back(Visit(id, date, diagnosis, prescription));
+        return "✅ Visit added successfully!";
     }
 
     // ---------- HISTORY ----------
@@ -207,56 +206,42 @@ public:
 // ================= GLOBAL =================
 HospitalSystem hs;
 
+// ================= STRING FIX =================
+char* toCString(string str) {
+    char* res = new char[str.size() + 1];
+    strcpy(res, str.c_str());
+    return res;
+}
+
 // ================= EXPORT =================
 extern "C" {
 
-// Register
-const char* register_patient(int id, const char* name, int age, const char* phone) {
-    static string result;
-    result = hs.registerPatient(id, name, age, phone);
-    return result.c_str();
+char* register_patient(int id, const char* name, int age, const char* phone) {
+    return toCString(hs.registerPatient(id, name, age, phone));
 }
 
-// Add Visit
-const char* add_visit(int id, const char* date, const char* diagnosis, const char* prescription) {
-    static string result;
-    result = hs.addVisit(id, date, diagnosis, prescription);
-    return result.c_str();
+char* add_visit(int id, const char* date, const char* diagnosis, const char* prescription) {
+    return toCString(hs.addVisit(id, date, diagnosis, prescription));
 }
 
-// History
-const char* get_history(int id) {
-    static string result;
-    result = hs.getHistory(id);
-    return result.c_str();
+char* get_history(int id) {
+    return toCString(hs.getHistory(id));
 }
 
-// Frequent
-const char* frequent_visitors(int n) {
-    static string result;
-    result = hs.frequentVisitors(n);
-    return result.c_str();
+char* frequent_visitors(int n) {
+    return toCString(hs.frequentVisitors(n));
 }
 
-// Monthly
-const char* visits_this_month(const char* month) {
-    static string result;
-    result = hs.visitsThisMonth(month);
-    return result.c_str();
+char* visits_this_month(const char* month) {
+    return toCString(hs.visitsThisMonth(month));
 }
 
-// Edit
-const char* edit_patient(int id, const char* name, int age, const char* phone) {
-    static string result;
-    result = hs.editPatient(id, name, age, phone);
-    return result.c_str();
+char* edit_patient(int id, const char* name, int age, const char* phone) {
+    return toCString(hs.editPatient(id, name, age, phone));
 }
 
-// Delete
-const char* delete_patient(int id) {
-    static string result;
-    result = hs.deletePatient(id);
-    return result.c_str();
+char* delete_patient(int id) {
+    return toCString(hs.deletePatient(id));
 }
 
 }
