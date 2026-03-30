@@ -155,20 +155,24 @@ public:
         return "Total visits this month: " + to_string(count);
     }
 
-    // ---------- EDIT ----------
+    // ---------- EDIT (PARTIAL UPDATE) ----------
     string editPatient(int id, string newName, int newAge, string newPhone) {
-
-        if (newAge <= 0)
-            return "❌ Invalid Age!";
-
-        if (!isValidPhone(newPhone))
-            return "❌ Phone must be exactly 10 digits!";
 
         for (auto &p : patients) {
             if (p.id == id) {
-                p.name = newName;
-                p.age = newAge;
-                p.phone = newPhone;
+
+                if (newName != "")
+                    p.name = newName;
+
+                if (newAge > 0)
+                    p.age = newAge;
+
+                if (newPhone != "") {
+                    if (!isValidPhone(newPhone))
+                        return "❌ Invalid phone (must be 10 digits)";
+                    p.phone = newPhone;
+                }
+
                 return "✅ Patient updated successfully!";
             }
         }
