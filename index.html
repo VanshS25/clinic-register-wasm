@@ -5,82 +5,68 @@
 
 <style>
 body {
-    margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    display: flex;
+    background: #eef2f7;
+    margin: 0;
 }
 
-/* Sidebar */
-.sidebar {
-    width: 220px;
-    background: #1e293b;
+/* Header */
+.header {
+    background: #2563eb;
     color: white;
-    height: 100vh;
-    padding: 20px;
-}
-
-.sidebar h2 {
+    padding: 15px;
     text-align: center;
+    font-size: 24px;
+    font-weight: bold;
 }
 
-.sidebar button {
-    width: 100%;
-    margin: 10px 0;
-    padding: 10px;
-    background: #334155;
-    border: none;
-    color: white;
-    cursor: pointer;
+/* Container */
+.container {
+    max-width: 800px;
+    margin: 20px auto;
 }
 
-.sidebar button:hover {
-    background: #475569;
-}
-
-/* Main */
-.main {
-    flex: 1;
-    background: #f1f5f9;
-    padding: 20px;
-}
-
-/* Cards */
+/* Card */
 .card {
     background: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    display: none;
-}
-
-/* Active */
-.active {
-    display: block;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 /* Inputs */
 input {
     width: 100%;
-    margin: 5px 0;
-    padding: 8px;
+    padding: 10px;
+    margin: 6px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
 }
 
 /* Buttons */
-.action-btn {
+button {
     width: 100%;
     padding: 10px;
     background: #2563eb;
     color: white;
     border: none;
+    border-radius: 8px;
+    margin-top: 8px;
     cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
 }
 
 /* Output */
 #output {
     background: black;
     color: #00ff00;
-    padding: 10px;
-    min-height: 150px;
+    padding: 12px;
+    border-radius: 8px;
+    min-height: 120px;
     white-space: pre-line;
 }
 </style>
@@ -89,134 +75,133 @@ input {
 
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-<h2>🏥 Clinic</h2>
-<button onclick="show('register')">Register</button>
-<button onclick="show('visit')">Add Visit</button>
-<button onclick="show('history')">History</button>
-<button onclick="show('report')">Reports</button>
-<button onclick="show('edit')">Edit</button>
-<button onclick="show('delete')">Delete</button>
-</div>
+<div class="header">🏥 Clinic Register System</div>
 
-<!-- Main -->
-<div class="main">
+<div class="container">
 
 <!-- Register -->
-<div id="register" class="card active">
+<div class="card">
 <h3>Register Patient</h3>
 <input id="pid" placeholder="ID">
 <input id="pname" placeholder="Name">
 <input id="page" placeholder="Age">
 <input id="pphone" placeholder="Phone">
-<button class="action-btn" onclick="registerPatient()">Submit</button>
+<button onclick="registerPatient()">Register</button>
 </div>
 
 <!-- Visit -->
-<div id="visit" class="card">
+<div class="card">
 <h3>Add Visit</h3>
 <input id="vid" placeholder="Patient ID">
 <input id="vdate" placeholder="DD-MM-YYYY">
 <input id="vdiag" placeholder="Diagnosis">
 <input id="vpres" placeholder="Prescription">
-<button class="action-btn" onclick="addVisit()">Submit</button>
+<button onclick="addVisit()">Add Visit</button>
 </div>
 
 <!-- History -->
-<div id="history" class="card">
-<h3>Patient History</h3>
+<div class="card">
+<h3>View History</h3>
 <input id="sid" placeholder="Patient ID">
-<button class="action-btn" onclick="getHistory()">Show</button>
-</div>
-
-<!-- Reports -->
-<div id="report" class="card">
-<h3>Reports</h3>
-<input id="nvisits" placeholder="Frequent N">
-<button class="action-btn" onclick="frequentVisitors()">Frequent</button>
-<input id="month" placeholder="MM">
-<button class="action-btn" onclick="monthlyVisits()">Monthly</button>
+<button onclick="getHistory()">Show</button>
 </div>
 
 <!-- Edit -->
-<div id="edit" class="card">
+<div class="card">
 <h3>Edit Patient</h3>
 <input id="eid" placeholder="ID">
 <input id="ename" placeholder="New Name">
 <input id="eage" placeholder="Age">
 <input id="ephone" placeholder="Phone">
-<button class="action-btn" onclick="editPatient()">Update</button>
+<button onclick="editPatient()">Update</button>
 </div>
 
 <!-- Delete -->
-<div id="delete" class="card">
+<div class="card">
 <h3>Delete Patient</h3>
 <input id="did" placeholder="ID">
-<button class="action-btn" onclick="deletePatient()">Delete</button>
+<button onclick="deletePatient()">Delete</button>
 </div>
 
 <!-- Output -->
-<div class="card active">
-<h3>System Output</h3>
-<div id="output"></div>
+<div class="card">
+<h3>Output</h3>
+<div id="output">Waiting for input...</div>
 </div>
 
 </div>
 
-<!-- WASM -->
+<!-- WASM FIX -->
 <script>
 var Module = {};
-Module.onRuntimeInitialized = () => console.log("WASM Ready");
+let ready = false;
+
+Module.onRuntimeInitialized = function() {
+    ready = true;
+    document.getElementById("output").innerText = "✅ System Ready";
+};
 </script>
 
 <script src="clinic.js"></script>
 
 <script>
-// Switch UI
-function show(id) {
-    document.querySelectorAll(".card").forEach(c => c.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+
+function checkReady() {
+    if (!ready) {
+        alert("⚠️ WebAssembly not loaded yet!");
+        return false;
+    }
+    return true;
 }
 
-// Functions
 function registerPatient() {
-    output.innerText = Module.ccall("register_patient","string",
+    if (!checkReady()) return;
+
+    let result = Module.ccall("register_patient","string",
     ["number","string","number","string"],
     [pid.value,pname.value,page.value,pphone.value]);
+
+    output.innerText = result;
 }
 
 function addVisit() {
-    output.innerText = Module.ccall("add_visit","string",
+    if (!checkReady()) return;
+
+    let result = Module.ccall("add_visit","string",
     ["number","string","string","string"],
     [vid.value,vdate.value,vdiag.value,vpres.value]);
+
+    output.innerText = result;
 }
 
 function getHistory() {
-    output.innerText = Module.ccall("get_history","string",
+    if (!checkReady()) return;
+
+    let result = Module.ccall("get_history","string",
     ["number"],[sid.value]);
-}
 
-function frequentVisitors() {
-    output.innerText = Module.ccall("frequent_visitors","string",
-    ["number"],[nvisits.value]);
-}
-
-function monthlyVisits() {
-    output.innerText = Module.ccall("visits_this_month","string",
-    ["string"],[month.value]);
+    output.innerText = result;
 }
 
 function editPatient() {
-    output.innerText = Module.ccall("edit_patient","string",
+    if (!checkReady()) return;
+
+    let result = Module.ccall("edit_patient","string",
     ["number","string","number","string"],
     [eid.value,ename.value,eage.value,ephone.value]);
+
+    output.innerText = result;
 }
 
 function deletePatient() {
-    output.innerText = Module.ccall("delete_patient","string",
+    if (!checkReady()) return;
+
+    let result = Module.ccall("delete_patient","string",
     ["number"],[did.value]);
+
+    output.innerText = result;
 }
+
 </script>
 
 </body>
