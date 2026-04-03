@@ -8,15 +8,17 @@ body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
     display: flex;
+    background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
 }
 
 /* Sidebar */
 .sidebar {
     width: 230px;
-    background: #1e293b;
+    background: linear-gradient(180deg, #1e3a8a, #2563eb);
     color: white;
     height: 100vh;
     padding: 20px;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.2);
 }
 
 .sidebar h2 {
@@ -28,22 +30,23 @@ body {
     width: 100%;
     padding: 12px;
     margin: 8px 0;
-    background: #334155;
+    background: rgba(255,255,255,0.15);
     border: none;
     color: white;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 15px;
+    transition: 0.3s;
 }
 
 .sidebar button:hover {
-    background: #2563eb;
+    background: white;
+    color: #2563eb;
+    transform: scale(1.05);
 }
 
-/* Main Area */
+/* Main */
 .main {
     flex: 1;
-    background: #f1f5f9;
     padding: 25px;
 }
 
@@ -51,12 +54,17 @@ body {
 .card {
     background: white;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 15px;
     display: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    animation: fadeIn 0.4s ease;
 }
 
-/* Active */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .active {
     display: block;
 }
@@ -70,30 +78,38 @@ input {
     border: 1px solid #ccc;
 }
 
-/* Button */
+input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 5px rgba(37,99,235,0.4);
+    outline: none;
+}
+
+/* Buttons */
 .submit-btn {
     width: 100%;
     padding: 12px;
-    background: #2563eb;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
 }
 
 .submit-btn:hover {
-    background: #1d4ed8;
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.4);
 }
 
 /* Output */
 #output {
-    background: black;
-    color: #00ff00;
+    background: #020617;
+    color: #22c55e;
     padding: 15px;
     margin-top: 20px;
-    border-radius: 10px;
+    border-radius: 12px;
     min-height: 150px;
     white-space: pre-line;
+    font-family: monospace;
 }
 </style>
 
@@ -103,7 +119,7 @@ input {
 
 <!-- Sidebar -->
 <div class="sidebar">
-<h2>🏥 Clinic</h2>
+<h2>🏥 Clinic Pro</h2>
 <button onclick="show('register')">Register</button>
 <button onclick="show('visit')">Add Visit</button>
 <button onclick="show('history')">History</button>
@@ -155,8 +171,8 @@ input {
 <!-- Edit -->
 <div id="edit" class="card">
 <h3>Edit Patient</h3>
-<input id="eid" placeholder="ID">
-<input id="ename" placeholder="New Name">
+<input id="eid" placeholder="Enter ID" onblur="autoFill()">
+<input id="ename" placeholder="Name">
 <input id="eage" placeholder="Age">
 <input id="ephone" placeholder="Phone">
 <button class="submit-btn" onclick="editPatient()">Update</button>
@@ -174,14 +190,14 @@ input {
 
 </div>
 
-<!-- WASM FIX -->
+<!-- WASM -->
 <script>
 var Module = {};
 let ready = false;
 
 Module.onRuntimeInitialized = function() {
     ready = true;
-    document.getElementById("output").innerText = "✅ System Ready";
+    output.innerText = "✅ System Ready";
 };
 </script>
 
@@ -195,13 +211,33 @@ function show(id) {
     document.getElementById(id).classList.add("active");
 }
 
-// Check WASM
+// Check
 function check() {
     if (!ready) {
         alert("WASM not ready");
         return false;
     }
     return true;
+}
+
+// Autofill
+function autoFill() {
+    if (!check()) return;
+
+    let id = parseInt(eid.value);
+    if (!id) return;
+
+    let result = Module.ccall("get_patient","string",["number"],[id]);
+
+    if (result === "NOT_FOUND") {
+        alert("Patient not found");
+        return;
+    }
+
+    let data = result.split(",");
+    ename.value = data[0];
+    eage.value = data[1];
+    ephone.value = data[2];
 }
 
 // Functions
@@ -239,9 +275,12 @@ function monthlyVisits() {
 
 function editPatient() {
     if (!check()) return;
+
+    let ageVal = eage.value === "" ? 0 : parseInt(eage.value);
+
     output.innerText = Module.ccall("edit_patient","string",
     ["number","string","number","string"],
-    [eid.value,ename.value,eage.value,ephone.value]);
+    [eid.value,ename.value,ageVal,ephone.value]);
 }
 
 function deletePatient() {
