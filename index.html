@@ -200,7 +200,7 @@ function show(id) {
     document.getElementById(id).classList.add("active");
 }
 
-// Check WASM
+// Check
 function check() {
     if (!ready) {
         alert("WASM not ready");
@@ -223,7 +223,7 @@ function autoFill() {
     ephone.value = d[2];
 }
 
-// Functions
+// Register
 function registerPatient() {
     if (!check()) return;
 
@@ -234,31 +234,47 @@ function registerPatient() {
     pid.value = pname.value = page.value = pphone.value = "";
 }
 
+// Visit
 function addVisit() {
     if (!check()) return;
+
     output.innerText = Module.ccall("add_visit","string",
     ["number","string","string","string"],
     [vid.value,vdate.value,vdiag.value,vpres.value]);
+
+    vid.value = vdate.value = vdiag.value = vpres.value = "";
 }
 
+// History
 function getHistory() {
     if (!check()) return;
+
     output.innerText = Module.ccall("get_history","string",
     ["number"],[sid.value]);
+
+    sid.value = "";
 }
 
+// Reports
 function frequentVisitors() {
     if (!check()) return;
+
     output.innerText = Module.ccall("frequent_visitors","string",
     ["number"],[nvisits.value]);
+
+    nvisits.value = "";
 }
 
 function monthlyVisits() {
     if (!check()) return;
+
     output.innerText = Module.ccall("visits_this_month","string",
     ["string"],[month.value]);
+
+    month.value = "";
 }
 
+// Edit
 function editPatient() {
     if (!check()) return;
 
@@ -267,12 +283,18 @@ function editPatient() {
     output.innerText = Module.ccall("edit_patient","string",
     ["number","string","number","string"],
     [eid.value,ename.value,ageVal,ephone.value]);
+
+    eid.value = ename.value = eage.value = ephone.value = "";
 }
 
+// Delete
 function deletePatient() {
     if (!check()) return;
+
     output.innerText = Module.ccall("delete_patient","string",
     ["number"],[did.value]);
+
+    did.value = "";
 }
 
 </script>
