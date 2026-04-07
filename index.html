@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Clinic Analyzer</title>
+<title>Clinic Terminal</title>
 
 <style>
 body {
@@ -11,48 +11,10 @@ body {
     color: #00ffcc;
 }
 
-/* GRID BACKGROUND */
-body::before {
-    content: "";
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background-image: linear-gradient(#00ffcc11 1px, transparent 1px),
-                      linear-gradient(90deg, #00ffcc11 1px, transparent 1px);
-    background-size: 40px 40px;
-    animation: move 10s linear infinite;
-}
-
-@keyframes move {
-    from { transform: translate(0,0); }
-    to { transform: translate(40px,40px); }
-}
-
-/* Header */
-.header {
-    margin: 20px auto;
-    max-width: 900px;
-    padding: 15px;
-    border-radius: 12px;
-    background: #020617;
-    box-shadow: 0 0 15px #00ffcc33;
-    display: flex;
-    justify-content: space-between;
-}
-
-.status {
-    color: #22c55e;
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    50% { opacity: 0.4; }
-}
-
 /* Container */
 .container {
     max-width: 900px;
-    margin: auto;
+    margin: 40px auto;
 }
 
 /* Terminal */
@@ -60,7 +22,7 @@ body::before {
     background: #020617;
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 0 25px #00ffcc22;
+    box-shadow: 0 0 20px #00ffcc33;
 }
 
 /* Output */
@@ -88,29 +50,12 @@ input {
     outline: none;
 }
 
-/* Button */
 button {
     background: #00ffcc;
     border: none;
-    padding: 10px 15px;
+    padding: 10px;
     border-radius: 8px;
     cursor: pointer;
-}
-
-button:hover {
-    transform: scale(1.05);
-}
-
-/* Quick buttons */
-.quick button {
-    margin: 5px;
-    background: #00ffcc22;
-    color: #00ffcc;
-}
-
-.quick button:hover {
-    background: #00ffcc;
-    color: black;
 }
 </style>
 
@@ -118,18 +63,13 @@ button:hover {
 
 <body>
 
-<div class="header">
-    <div>🏥 Clinic Analyzer</div>
-    <div class="status">● WASM Live</div>
-</div>
-
 <div class="container">
 
 <div class="terminal">
 
 <div id="output">
-[+] System Initialized
-Type: register, visit, history, edit, delete
+[+] Clinic System Ready
+Type: register, history, delete
 </div>
 
 <div class="input-box">
@@ -137,21 +77,13 @@ Type: register, visit, history, edit, delete
 <button onclick="send()">Send</button>
 </div>
 
-<div class="quick">
-<button onclick="quick('register')">Register</button>
-<button onclick="quick('visit')">Visit</button>
-<button onclick="quick('history')">History</button>
-<button onclick="quick('edit')">Edit</button>
-<button onclick="quick('delete')">Delete</button>
 </div>
 
 </div>
 
-</div>
-
-<!-- WASM FIX -->
+<!-- 🔥 WASM FIX -->
 <script>
-var ready = false;
+let ready = false;
 
 var Module = {
     locateFile: function(path) {
@@ -160,7 +92,7 @@ var Module = {
     },
     onRuntimeInitialized: function() {
         ready = true;
-        print("✅ WASM Loaded");
+        print("✅ System Ready");
     }
 };
 </script>
@@ -169,59 +101,37 @@ var Module = {
 
 <script>
 
-let history = [];
-let index = -1;
+const cmd = document.getElementById("cmd");
+const output = document.getElementById("output");
 
 function print(text) {
-    let out = document.getElementById("output");
-    out.innerText += "\n" + text;
-    out.scrollTop = out.scrollHeight;
+    output.innerText += "\n" + text;
+    output.scrollTop = output.scrollHeight;
 }
 
 function send() {
     let input = cmd.value.trim();
     if (!input) return;
 
-    history.push(input);
-    index = history.length;
-
     cmd.value = "";
     process(input);
 }
 
 function handleKey(e) {
-
     if (e.key === "Enter") send();
-
-    // ⬆️ History
-    if (e.key === "ArrowUp") {
-        if (index > 0) index--;
-        cmd.value = history[index] || "";
-    }
-
-    if (e.key === "ArrowDown") {
-        if (index < history.length - 1) index++;
-        cmd.value = history[index] || "";
-    }
 }
 
-function quick(x) {
-    cmd.value = x;
-    cmd.focus();
-}
-
-// STATE
+// STATE SYSTEM
 let state = "";
 let temp = {};
 
 function process(input) {
 
     if (!ready) {
-        print("⚠️ System not ready");
+        print("⚠️ WASM not ready");
         return;
     }
 
-    // 🔥 SHOW USER INPUT
     print("> " + input);
 
     // -------- REGISTER --------
