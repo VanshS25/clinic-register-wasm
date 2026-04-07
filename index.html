@@ -1,104 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Clinic Pro</title>
+<title>Clinic Terminal</title>
 
 <style>
-:root {
-    --bg: #f1f5f9;
-    --card: white;
-    --text: black;
-}
-
-.dark {
-    --bg: #0f172a;
-    --card: #1e293b;
-    --text: white;
-}
-
 body {
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    display: flex;
-    background: var(--bg);
-    color: var(--text);
+    font-family: monospace;
+    background: radial-gradient(circle, #020617, #000);
+    color: #00ff9f;
 }
 
-/* Sidebar */
-.sidebar {
-    width: 230px;
-    background: linear-gradient(180deg, #2563eb, #7c3aed);
-    color: white;
-    height: 100vh;
-    padding: 20px;
+/* Container */
+.container {
+    max-width: 900px;
+    margin: 40px auto;
 }
 
-.sidebar h2 {
+/* Title */
+.title {
+    font-size: 28px;
     text-align: center;
+    margin-bottom: 20px;
 }
 
-.sidebar button {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    border: none;
+/* Terminal */
+.terminal {
+    background: #020617;
     border-radius: 10px;
-    background: rgba(255,255,255,0.2);
-    color: white;
-    cursor: pointer;
-}
-
-.sidebar button:hover {
-    background: white;
-    color: black;
-}
-
-/* Main */
-.main {
-    flex: 1;
-    padding: 25px;
-}
-
-/* Card */
-.card {
-    background: var(--card);
     padding: 20px;
-    border-radius: 12px;
-    display: none;
-}
-
-.active {
-    display: block;
-}
-
-/* Inputs */
-input {
-    width: 100%;
-    padding: 10px;
-    margin: 6px 0;
-    border-radius: 8px;
-    border: none;
-}
-
-/* Button */
-.submit-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-    color: white;
-    border: none;
-    cursor: pointer;
+    box-shadow: 0 0 20px #00ff9f33;
 }
 
 /* Output */
 #output {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 10px;
-    background: black;
-    color: #22c55e;
-    min-height: 120px;
+    min-height: 300px;
+    white-space: pre-line;
+    margin-bottom: 10px;
+}
+
+/* Input */
+.input-line {
+    display: flex;
+}
+
+.input-line span {
+    margin-right: 5px;
+}
+
+input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #00ff9f;
+    outline: none;
+}
+
+/* Buttons */
+.commands {
+    margin-top: 15px;
+}
+
+button {
+    margin: 5px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #00ff9f22;
+    color: #00ff9f;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #00ff9f;
+    color: black;
 }
 </style>
 
@@ -106,72 +81,37 @@ input {
 
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-<h2>🏥 Clinic Pro</h2>
+<div class="container">
 
-<button onclick="show('register')">Register</button>
-<button onclick="show('visit')">Add Visit</button>
-<button onclick="show('history')">History</button>
-<button onclick="show('report')">Reports</button>
-<button onclick="show('edit')">Edit</button>
-<button onclick="show('delete')">Delete</button>
+<div class="title">🏥 Clinic Terminal</div>
 
-<button onclick="toggleMode()">🌙 Toggle Mode</button>
+<div class="terminal">
+
+<div id="output">
+Welcome to Clinic System
+
+Commands:
+register id name age phone
+visit id date diagnosis prescription
+history id
+edit id name age phone
+delete id
 </div>
 
-<!-- Main -->
-<div class="main">
-
-<div id="register" class="card active">
-<h3>Register Patient</h3>
-<input id="pid" placeholder="ID">
-<input id="pname" placeholder="Name">
-<input id="page" placeholder="Age">
-<input id="pphone" placeholder="Phone">
-<button class="submit-btn" onclick="registerPatient()">Submit</button>
+<div class="input-line">
+<span>></span>
+<input id="cmd" placeholder="Type command..." onkeydown="handleEnter(event)">
 </div>
 
-<div id="visit" class="card">
-<h3>Add Visit</h3>
-<input id="vid" placeholder="Patient ID">
-<input id="vdate" placeholder="DD-MM-YYYY">
-<input id="vdiag" placeholder="Diagnosis">
-<input id="vpres" placeholder="Prescription">
-<button class="submit-btn" onclick="addVisit()">Submit</button>
+<div class="commands">
+<button onclick="quick('register')">Register</button>
+<button onclick="quick('visit')">Visit</button>
+<button onclick="quick('history')">History</button>
+<button onclick="quick('edit')">Edit</button>
+<button onclick="quick('delete')">Delete</button>
 </div>
 
-<div id="history" class="card">
-<h3>Patient History</h3>
-<input id="sid" placeholder="Patient ID">
-<button class="submit-btn" onclick="getHistory()">Show</button>
 </div>
-
-<div id="report" class="card">
-<h3>Reports</h3>
-<input id="nvisits" placeholder="Frequent N">
-<button class="submit-btn" onclick="frequentVisitors()">Frequent</button>
-
-<input id="month" placeholder="MM">
-<button class="submit-btn" onclick="monthlyVisits()">Monthly</button>
-</div>
-
-<div id="edit" class="card">
-<h3>Edit Patient</h3>
-<input id="eid" placeholder="Enter ID" onblur="autoFill()">
-<input id="ename" placeholder="Name">
-<input id="eage" placeholder="Age">
-<input id="ephone" placeholder="Phone">
-<button class="submit-btn" onclick="editPatient()">Update</button>
-</div>
-
-<div id="delete" class="card">
-<h3>Delete Patient</h3>
-<input id="did" placeholder="ID">
-<button class="submit-btn" onclick="deletePatient()">Delete</button>
-</div>
-
-<div id="output">⚡ System Ready</div>
 
 </div>
 
@@ -182,6 +122,7 @@ let ready = false;
 
 Module.onRuntimeInitialized = function() {
     ready = true;
+    print("✅ System Ready");
 };
 </script>
 
@@ -189,112 +130,75 @@ Module.onRuntimeInitialized = function() {
 
 <script>
 
-// Toggle mode
-function toggleMode() {
-    document.body.classList.toggle("dark");
+// Print to terminal
+function print(text) {
+    output.innerText += "\n" + text;
 }
 
-// Navigation
-function show(id) {
-    document.querySelectorAll(".card").forEach(c => c.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-}
-
-// Check
-function check() {
-    if (!ready) {
-        alert("WASM not ready");
-        return false;
+// Enter key
+function handleEnter(e) {
+    if (e.key === "Enter") {
+        runCommand(cmd.value);
+        cmd.value = "";
     }
-    return true;
 }
 
-// Autofill
-function autoFill() {
-    if (!check()) return;
-
-    let result = Module.ccall("get_patient","string",["number"],[eid.value]);
-
-    if (result === "NOT_FOUND") return;
-
-    let d = result.split(",");
-    ename.value = d[0];
-    eage.value = d[1];
-    ephone.value = d[2];
+// Quick buttons
+function quick(type) {
+    cmd.value = type + " ";
+    cmd.focus();
 }
 
-// Register
-function registerPatient() {
-    if (!check()) return;
+// Main command handler
+function runCommand(input) {
 
-    output.innerText = Module.ccall("register_patient","string",
-    ["number","string","number","string"],
-    [pid.value,pname.value,page.value,pphone.value]);
+    if (!ready) {
+        print("⚠️ System not ready");
+        return;
+    }
 
-    pid.value = pname.value = page.value = pphone.value = "";
-}
+    let parts = input.split(" ");
+    let command = parts[0];
 
-// Visit
-function addVisit() {
-    if (!check()) return;
+    let result = "";
 
-    output.innerText = Module.ccall("add_visit","string",
-    ["number","string","string","string"],
-    [vid.value,vdate.value,vdiag.value,vpres.value]);
+    switch(command) {
 
-    vid.value = vdate.value = vdiag.value = vpres.value = "";
-}
+        case "register":
+            result = Module.ccall("register_patient","string",
+            ["number","string","number","string"],
+            [parts[1], parts[2], parts[3], parts[4]]);
+            break;
 
-// History
-function getHistory() {
-    if (!check()) return;
+        case "visit":
+            result = Module.ccall("add_visit","string",
+            ["number","string","string","string"],
+            [parts[1], parts[2], parts[3], parts[4]]);
+            break;
 
-    output.innerText = Module.ccall("get_history","string",
-    ["number"],[sid.value]);
+        case "history":
+            result = Module.ccall("get_history","string",
+            ["number"], [parts[1]]);
+            break;
 
-    sid.value = "";
-}
+        case "edit":
+            let age = parts[3] ? parseInt(parts[3]) : 0;
+            result = Module.ccall("edit_patient","string",
+            ["number","string","number","string"],
+            [parts[1], parts[2] || "", age, parts[4] || ""]);
+            break;
 
-// Reports
-function frequentVisitors() {
-    if (!check()) return;
+        case "delete":
+            result = Module.ccall("delete_patient","string",
+            ["number"], [parts[1]]);
+            break;
 
-    output.innerText = Module.ccall("frequent_visitors","string",
-    ["number"],[nvisits.value]);
+        default:
+            result = "❌ Unknown command";
+    }
 
-    nvisits.value = "";
-}
-
-function monthlyVisits() {
-    if (!check()) return;
-
-    output.innerText = Module.ccall("visits_this_month","string",
-    ["string"],[month.value]);
-
-    month.value = "";
-}
-
-// Edit
-function editPatient() {
-    if (!check()) return;
-
-    let ageVal = eage.value === "" ? 0 : parseInt(eage.value);
-
-    output.innerText = Module.ccall("edit_patient","string",
-    ["number","string","number","string"],
-    [eid.value,ename.value,ageVal,ephone.value]);
-
-    eid.value = ename.value = eage.value = ephone.value = "";
-}
-
-// Delete
-function deletePatient() {
-    if (!check()) return;
-
-    output.innerText = Module.ccall("delete_patient","string",
-    ["number"],[did.value]);
-
-    did.value = "";
+    print("> " + input);
+    print(result);
 }
 
 </script>
