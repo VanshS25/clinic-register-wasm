@@ -1,21 +1,149 @@
-<script>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Clinic Terminal</title>
 
-var Module = {};
-let ready = false;
-
-Module.onRuntimeInitialized = function() {
-    ready = true;
-    print("✅ System Ready");
-};
-
-// Terminal print
-function print(text) {
-    output.innerText += "\n" + text;
+<style>
+body {
+    margin: 0;
+    font-family: monospace;
+    background: radial-gradient(circle, #020617, #000);
+    color: #00ff9f;
 }
 
-// State machine
-let state = "";
-let tempData = {};
+/* Container */
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+/* Title */
+.title {
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Terminal */
+.terminal {
+    background: #020617;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 20px #00ff9f33;
+}
+
+/* Output */
+#output {
+    min-height: 300px;
+    white-space: pre-line;
+    margin-bottom: 10px;
+}
+
+/* Input */
+.input-line {
+    display: flex;
+}
+
+.input-line span {
+    margin-right: 5px;
+}
+
+input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #00ff9f;
+    outline: none;
+}
+
+/* Buttons */
+.commands {
+    margin-top: 15px;
+}
+
+button {
+    margin: 5px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #00ff9f22;
+    color: #00ff9f;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #00ff9f;
+    color: black;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="title">🏥 Clinic Terminal</div>
+
+<div class="terminal">
+
+<div id="output">
+Welcome to Clinic System
+
+Commands:
+register
+visit
+history
+edit
+delete
+</div>
+
+<div class="input-line">
+<span>></span>
+<input id="cmd" placeholder="Type command..." onkeydown="handleEnter(event)">
+</div>
+
+<div class="commands">
+<button onclick="quick('register')">Register</button>
+<button onclick="quick('visit')">Visit</button>
+<button onclick="quick('history')">History</button>
+<button onclick="quick('edit')">Edit</button>
+<button onclick="quick('delete')">Delete</button>
+</div>
+
+</div>
+
+</div>
+
+<!-- 🔥 FIXED WASM LOADING -->
+<script>
+var ready = false;
+
+var Module = {
+    locateFile: function(path) {
+        if (path.endsWith(".wasm")) return "clinic.wasm";
+        return path;
+    },
+    onRuntimeInitialized: function() {
+        ready = true;
+        print("✅ System Ready");
+    }
+};
+</script>
+
+<script src="clinic.js"></script>
+
+<script>
+
+// Print function
+function print(text) {
+    document.getElementById("output").innerText += "\n" + text;
+}
+
+// Quick button
+function quick(cmdName) {
+    document.getElementById("cmd").value = cmdName;
+}
 
 // Enter key
 function handleEnter(e) {
@@ -25,7 +153,10 @@ function handleEnter(e) {
     }
 }
 
-// Main logic
+// State machine
+let state = "";
+let temp = {};
+
 function processInput(input) {
 
     if (!ready) {
@@ -33,98 +164,106 @@ function processInput(input) {
         return;
     }
 
-    // STEP FLOW
-    switch(state) {
+    // -------- REGISTER --------
+    if (state === "reg_id") {
+        temp.id = input;
+        print("Enter Name:");
+        state = "reg_name";
+        return;
+    }
 
-        // -------- REGISTER FLOW --------
-        case "reg_id":
-            tempData.id = input;
-            print("Enter Name:");
-            state = "reg_name";
-            return;
+    if (state === "reg_name") {
+        temp.name = input;
+        print("Enter Age:");
+        state = "reg_age";
+        return;
+    }
 
-        case "reg_name":
-            tempData.name = input;
-            print("Enter Age:");
-            state = "reg_age";
-            return;
+    if (state === "reg_age") {
+        temp.age = input;
+        print("Enter Phone:");
+        state = "reg_phone";
+        return;
+    }
 
-        case "reg_age":
-            tempData.age = input;
-            print("Enter Phone:");
-            state = "reg_phone";
-            return;
+    if (state === "reg_phone") {
+        temp.phone = input;
 
-        case "reg_phone":
-            tempData.phone = input;
+        let res = Module.ccall("register_patient","string",
+        ["number","string","number","string"],
+        [temp.id, temp.name, temp.age, temp.phone]);
 
-            let res = Module.ccall("register_patient","string",
-            ["number","string","number","string"],
-            [tempData.id, tempData.name, tempData.age, tempData.phone]);
+        print(res);
+        state = "";
+        return;
+    }
 
-            print(res);
-            state = "";
-            return;
+    // -------- VISIT --------
+    if (state === "visit_id") {
+        temp.id = input;
+        print("Enter Date:");
+        state = "visit_date";
+        return;
+    }
 
-        // -------- VISIT FLOW --------
-        case "visit_id":
-            tempData.id = input;
-            print("Enter Date:");
-            state = "visit_date";
-            return;
+    if (state === "visit_date") {
+        temp.date = input;
+        print("Enter Diagnosis:");
+        state = "visit_diag";
+        return;
+    }
 
-        case "visit_date":
-            tempData.date = input;
-            print("Enter Diagnosis:");
-            state = "visit_diag";
-            return;
+    if (state === "visit_diag") {
+        temp.diag = input;
+        print("Enter Prescription:");
+        state = "visit_pres";
+        return;
+    }
 
-        case "visit_diag":
-            tempData.diag = input;
-            print("Enter Prescription:");
-            state = "visit_pres";
-            return;
+    if (state === "visit_pres") {
+        temp.pres = input;
 
-        case "visit_pres":
-            tempData.pres = input;
+        let res = Module.ccall("add_visit","string",
+        ["number","string","string","string"],
+        [temp.id, temp.date, temp.diag, temp.pres]);
 
-            let res2 = Module.ccall("add_visit","string",
-            ["number","string","string","string"],
-            [tempData.id, tempData.date, tempData.diag, tempData.pres]);
+        print(res);
+        state = "";
+        return;
+    }
 
-            print(res2);
-            state = "";
-            return;
+    // -------- EDIT --------
+    if (state === "edit_id") {
+        temp.id = input;
+        print("Enter Name (or press Enter to skip):");
+        state = "edit_name";
+        return;
+    }
 
-        // -------- EDIT FLOW --------
-        case "edit_id":
-            tempData.id = input;
-            print("Enter Name (or press Enter to skip):");
-            state = "edit_name";
-            return;
+    if (state === "edit_name") {
+        temp.name = input;
+        print("Enter Age (or press Enter to skip):");
+        state = "edit_age";
+        return;
+    }
 
-        case "edit_name":
-            tempData.name = input;
-            print("Enter Age (or press Enter to skip):");
-            state = "edit_age";
-            return;
+    if (state === "edit_age") {
+        temp.age = input ? parseInt(input) : 0;
+        print("Enter Phone (or press Enter to skip):");
+        state = "edit_phone";
+        return;
+    }
 
-        case "edit_age":
-            tempData.age = input ? parseInt(input) : 0;
-            print("Enter Phone (or press Enter to skip):");
-            state = "edit_phone";
-            return;
+    if (state === "edit_phone") {
+        temp.phone = input;
 
-        case "edit_phone":
-            tempData.phone = input;
+        let res = Module.ccall("edit_patient","string",
+        ["number","string","number","string"],
+        [temp.id, temp.name || "", temp.age, temp.phone || ""]);
 
-            let res3 = Module.ccall("edit_patient","string",
-            ["number","string","number","string"],
-            [tempData.id, tempData.name || "", tempData.age, tempData.phone || ""]);
-
-            print(res3);
-            state = "";
-            return;
+        print(res);
+        state = "";
+        return;
     }
 
     // -------- COMMANDS --------
@@ -178,3 +317,6 @@ function processInput(input) {
 }
 
 </script>
+
+</body>
+</html>
