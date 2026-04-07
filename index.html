@@ -1,61 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Clinic Terminal</title>
+<title>Clinic Pro</title>
 
 <style>
+:root {
+    --bg: #f1f5f9;
+    --card: white;
+    --text: black;
+}
+
+.dark {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: white;
+}
+
 body {
     margin: 0;
-    font-family: monospace;
-    background: #020617;
-    color: #00ffcc;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    background: var(--bg);
+    color: var(--text);
 }
 
-/* Container */
-.container {
-    max-width: 900px;
-    margin: 40px auto;
-}
-
-/* Terminal */
-.terminal {
-    background: #020617;
-    border-radius: 12px;
+/* Sidebar */
+.sidebar {
+    width: 230px;
+    background: linear-gradient(180deg, #2563eb, #7c3aed);
+    color: white;
+    height: 100vh;
     padding: 20px;
-    box-shadow: 0 0 20px #00ffcc33;
+}
+
+.sidebar h2 {
+    text-align: center;
+}
+
+.sidebar button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    cursor: pointer;
+}
+
+.sidebar button:hover {
+    background: white;
+    color: black;
+}
+
+/* Main */
+.main {
+    flex: 1;
+    padding: 25px;
+}
+
+/* Card */
+.card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    display: none;
+}
+
+.active {
+    display: block;
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    border-radius: 8px;
+    border: none;
+}
+
+/* Button */
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 
 /* Output */
 #output {
-    min-height: 300px;
-    max-height: 350px;
-    overflow-y: auto;
-    white-space: pre-line;
-}
-
-/* Input */
-.input-box {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-input {
-    flex: 1;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
     background: black;
-    border: none;
-    color: #00ffcc;
-    padding: 10px;
-    border-radius: 8px;
-    outline: none;
-}
-
-button {
-    background: #00ffcc;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
+    color: #22c55e;
+    min-height: 120px;
 }
 </style>
 
@@ -63,37 +106,82 @@ button {
 
 <body>
 
-<div class="container">
+<!-- Sidebar -->
+<div class="sidebar">
+<h2>🏥 Clinic Pro</h2>
 
-<div class="terminal">
+<button onclick="show('register')">Register</button>
+<button onclick="show('visit')">Add Visit</button>
+<button onclick="show('history')">History</button>
+<button onclick="show('report')">Reports</button>
+<button onclick="show('edit')">Edit</button>
+<button onclick="show('delete')">Delete</button>
 
-<div id="output">
-[+] Clinic System Ready
-Type: register, history, delete
+<button onclick="toggleMode()">🌙 Toggle Mode</button>
 </div>
 
-<div class="input-box">
-<input id="cmd" placeholder="Type command..." onkeydown="handleKey(event)">
-<button onclick="send()">Send</button>
+<!-- Main -->
+<div class="main">
+
+<div id="register" class="card active">
+<h3>Register Patient</h3>
+<input id="pid" placeholder="ID">
+<input id="pname" placeholder="Name">
+<input id="page" placeholder="Age">
+<input id="pphone" placeholder="Phone">
+<button class="submit-btn" onclick="registerPatient()">Submit</button>
 </div>
+
+<div id="visit" class="card">
+<h3>Add Visit</h3>
+<input id="vid" placeholder="Patient ID">
+<input id="vdate" placeholder="DD-MM-YYYY">
+<input id="vdiag" placeholder="Diagnosis">
+<input id="vpres" placeholder="Prescription">
+<button class="submit-btn" onclick="addVisit()">Submit</button>
+</div>
+
+<div id="history" class="card">
+<h3>Patient History</h3>
+<input id="sid" placeholder="Patient ID">
+<button class="submit-btn" onclick="getHistory()">Show</button>
+</div>
+
+<div id="report" class="card">
+<h3>Reports</h3>
+<input id="nvisits" placeholder="Frequent N">
+<button class="submit-btn" onclick="frequentVisitors()">Frequent</button>
+
+<input id="month" placeholder="MM">
+<button class="submit-btn" onclick="monthlyVisits()">Monthly</button>
+</div>
+
+<div id="edit" class="card">
+<h3>Edit Patient</h3>
+<input id="eid" placeholder="Enter ID" onblur="autoFill()">
+<input id="ename" placeholder="Name">
+<input id="eage" placeholder="Age">
+<input id="ephone" placeholder="Phone">
+<button class="submit-btn" onclick="editPatient()">Update</button>
+</div>
+
+<div id="delete" class="card">
+<h3>Delete Patient</h3>
+<input id="did" placeholder="ID">
+<button class="submit-btn" onclick="deletePatient()">Delete</button>
+</div>
+
+<div id="output">⚡ System Ready</div>
 
 </div>
 
-</div>
-
-<!-- 🔥 WASM FIX -->
+<!-- WASM -->
 <script>
+var Module = {};
 let ready = false;
 
-var Module = {
-    locateFile: function(path) {
-        if (path.endsWith(".wasm")) return "clinic.wasm";
-        return path;
-    },
-    onRuntimeInitialized: function() {
-        ready = true;
-        print("✅ System Ready");
-    }
+Module.onRuntimeInitialized = function() {
+    ready = true;
 };
 </script>
 
@@ -101,110 +189,112 @@ var Module = {
 
 <script>
 
-const cmd = document.getElementById("cmd");
-const output = document.getElementById("output");
-
-function print(text) {
-    output.innerText += "\n" + text;
-    output.scrollTop = output.scrollHeight;
+// Toggle mode
+function toggleMode() {
+    document.body.classList.toggle("dark");
 }
 
-function send() {
-    let input = cmd.value.trim();
-    if (!input) return;
-
-    cmd.value = "";
-    process(input);
+// Navigation
+function show(id) {
+    document.querySelectorAll(".card").forEach(c => c.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
 }
 
-function handleKey(e) {
-    if (e.key === "Enter") send();
-}
-
-// STATE SYSTEM
-let state = "";
-let temp = {};
-
-function process(input) {
-
+// Check
+function check() {
     if (!ready) {
-        print("⚠️ WASM not ready");
-        return;
+        alert("WASM not ready");
+        return false;
     }
+    return true;
+}
 
-    print("> " + input);
+// Autofill
+function autoFill() {
+    if (!check()) return;
 
-    // -------- REGISTER --------
-    if (input === "register") {
-        print("Enter ID:");
-        state = "id";
-        return;
-    }
+    let result = Module.ccall("get_patient","string",["number"],[eid.value]);
 
-    if (state === "id") {
-        temp.id = input;
-        print("Enter Name:");
-        state = "name";
-        return;
-    }
+    if (result === "NOT_FOUND") return;
 
-    if (state === "name") {
-        temp.name = input;
-        print("Enter Age:");
-        state = "age";
-        return;
-    }
+    let d = result.split(",");
+    ename.value = d[0];
+    eage.value = d[1];
+    ephone.value = d[2];
+}
 
-    if (state === "age") {
-        temp.age = input;
-        print("Enter Phone:");
-        state = "phone";
-        return;
-    }
+// Register
+function registerPatient() {
+    if (!check()) return;
 
-    if (state === "phone") {
-        temp.phone = input;
+    output.innerText = Module.ccall("register_patient","string",
+    ["number","string","number","string"],
+    [pid.value,pname.value,page.value,pphone.value]);
 
-        let res = Module.ccall("register_patient","string",
-        ["number","string","number","string"],
-        [temp.id,temp.name,temp.age,temp.phone]);
+    pid.value = pname.value = page.value = pphone.value = "";
+}
 
-        print(res);
-        state = "";
-        return;
-    }
+// Visit
+function addVisit() {
+    if (!check()) return;
 
-    // -------- HISTORY --------
-    if (input === "history") {
-        print("Enter ID:");
-        state = "history";
-        return;
-    }
+    output.innerText = Module.ccall("add_visit","string",
+    ["number","string","string","string"],
+    [vid.value,vdate.value,vdiag.value,vpres.value]);
 
-    if (state === "history") {
-        let res = Module.ccall("get_history","string",
-        ["number"],[input]);
-        print(res);
-        state = "";
-        return;
-    }
+    vid.value = vdate.value = vdiag.value = vpres.value = "";
+}
 
-    // -------- DELETE --------
-    if (input === "delete") {
-        print("Enter ID:");
-        state = "delete";
-        return;
-    }
+// History
+function getHistory() {
+    if (!check()) return;
 
-    if (state === "delete") {
-        let res = Module.ccall("delete_patient","string",
-        ["number"],[input]);
-        print(res);
-        state = "";
-        return;
-    }
+    output.innerText = Module.ccall("get_history","string",
+    ["number"],[sid.value]);
 
-    print("❌ Unknown command");
+    sid.value = "";
+}
+
+// Reports
+function frequentVisitors() {
+    if (!check()) return;
+
+    output.innerText = Module.ccall("frequent_visitors","string",
+    ["number"],[nvisits.value]);
+
+    nvisits.value = "";
+}
+
+function monthlyVisits() {
+    if (!check()) return;
+
+    output.innerText = Module.ccall("visits_this_month","string",
+    ["string"],[month.value]);
+
+    month.value = "";
+}
+
+// Edit
+function editPatient() {
+    if (!check()) return;
+
+    let ageVal = eage.value === "" ? 0 : parseInt(eage.value);
+
+    output.innerText = Module.ccall("edit_patient","string",
+    ["number","string","number","string"],
+    [eid.value,ename.value,ageVal,ephone.value]);
+
+    eid.value = ename.value = eage.value = ephone.value = "";
+}
+
+// Delete
+function deletePatient() {
+    if (!check()) return;
+
+    output.innerText = Module.ccall("delete_patient","string",
+    ["number"],[did.value]);
+
+    did.value = "";
 }
 
 </script>
