@@ -7,8 +7,25 @@
 body {
     margin: 0;
     font-family: monospace;
-    background: radial-gradient(circle, #020617, #000);
+    background: #020617;
     color: #00ffcc;
+}
+
+/* GRID BACKGROUND */
+body::before {
+    content: "";
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(#00ffcc11 1px, transparent 1px),
+                      linear-gradient(90deg, #00ffcc11 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: move 10s linear infinite;
+}
+
+@keyframes move {
+    from { transform: translate(0,0); }
+    to { transform: translate(40px,40px); }
 }
 
 /* Header */
@@ -25,6 +42,11 @@ body {
 
 .status {
     color: #22c55e;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0.4; }
 }
 
 /* Container */
@@ -38,25 +60,27 @@ body {
     background: #020617;
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 0 20px #00ffcc22;
+    box-shadow: 0 0 25px #00ffcc22;
 }
 
 /* Output */
 #output {
     min-height: 300px;
+    max-height: 350px;
+    overflow-y: auto;
     white-space: pre-line;
-    margin-bottom: 10px;
 }
 
-/* Input area */
+/* Input */
 .input-box {
     display: flex;
     gap: 10px;
+    margin-top: 10px;
 }
 
 input {
     flex: 1;
-    background: #000;
+    background: black;
     border: none;
     color: #00ffcc;
     padding: 10px;
@@ -64,6 +88,7 @@ input {
     outline: none;
 }
 
+/* Button */
 button {
     background: #00ffcc;
     border: none;
@@ -72,11 +97,11 @@ button {
     cursor: pointer;
 }
 
-/* Quick buttons */
-.quick {
-    margin-top: 10px;
+button:hover {
+    transform: scale(1.05);
 }
 
+/* Quick buttons */
 .quick button {
     margin: 5px;
     background: #00ffcc22;
@@ -103,18 +128,12 @@ button {
 <div class="terminal">
 
 <div id="output">
-[+] Clinic System Ready
-
-Commands:
-register
-visit
-history
-edit
-delete
+[+] System Initialized
+Type: register, visit, history, edit, delete
 </div>
 
 <div class="input-box">
-<input id="cmd" placeholder="Type command..." onkeydown="handleEnter(event)">
+<input id="cmd" placeholder="Type command..." onkeydown="handleKey(event)">
 <button onclick="send()">Send</button>
 </div>
 
@@ -150,18 +169,40 @@ var Module = {
 
 <script>
 
-function print(text) {
-    output.innerText += "\n" + text;
-}
+let history = [];
+let index = -1;
 
-function handleEnter(e) {
-    if (e.key === "Enter") send();
+function print(text) {
+    let out = document.getElementById("output");
+    out.innerText += "\n" + text;
+    out.scrollTop = out.scrollHeight;
 }
 
 function send() {
-    let input = cmd.value;
+    let input = cmd.value.trim();
+    if (!input) return;
+
+    history.push(input);
+    index = history.length;
+
     cmd.value = "";
-    processInput(input);
+    process(input);
+}
+
+function handleKey(e) {
+
+    if (e.key === "Enter") send();
+
+    // ⬆️ History
+    if (e.key === "ArrowUp") {
+        if (index > 0) index--;
+        cmd.value = history[index] || "";
+    }
+
+    if (e.key === "ArrowDown") {
+        if (index < history.length - 1) index++;
+        cmd.value = history[index] || "";
+    }
 }
 
 function quick(x) {
@@ -173,59 +214,87 @@ function quick(x) {
 let state = "";
 let temp = {};
 
-function processInput(input) {
+function process(input) {
 
     if (!ready) {
         print("⚠️ System not ready");
         return;
     }
 
-    // REGISTER FLOW
-    if (state === "reg_id") {
+    // 🔥 SHOW USER INPUT
+    print("> " + input);
+
+    // -------- REGISTER --------
+    if (input === "register") {
+        print("Enter ID:");
+        state = "id";
+        return;
+    }
+
+    if (state === "id") {
         temp.id = input;
         print("Enter Name:");
-        state = "reg_name"; return;
+        state = "name";
+        return;
     }
-    if (state === "reg_name") {
+
+    if (state === "name") {
         temp.name = input;
         print("Enter Age:");
-        state = "reg_age"; return;
+        state = "age";
+        return;
     }
-    if (state === "reg_age") {
+
+    if (state === "age") {
         temp.age = input;
         print("Enter Phone:");
-        state = "reg_phone"; return;
+        state = "phone";
+        return;
     }
-    if (state === "reg_phone") {
+
+    if (state === "phone") {
         temp.phone = input;
-        print(Module.ccall("register_patient","string",
+
+        let res = Module.ccall("register_patient","string",
         ["number","string","number","string"],
-        [temp.id,temp.name,temp.age,temp.phone]));
-        state=""; return;
+        [temp.id,temp.name,temp.age,temp.phone]);
+
+        print(res);
+        state = "";
+        return;
     }
 
-    // COMMANDS
-    switch(input.toLowerCase()) {
-        case "register":
-            print("> register\nEnter ID:");
-            state="reg_id";
-            break;
-
-        case "history":
-            print("Enter ID:");
-            state="history";
-            break;
-
-        default:
-            if(state==="history"){
-                print(Module.ccall("get_history","string",
-                ["number"],[input]));
-                state="";
-            }
-            else{
-                print("❌ Unknown command");
-            }
+    // -------- HISTORY --------
+    if (input === "history") {
+        print("Enter ID:");
+        state = "history";
+        return;
     }
+
+    if (state === "history") {
+        let res = Module.ccall("get_history","string",
+        ["number"],[input]);
+        print(res);
+        state = "";
+        return;
+    }
+
+    // -------- DELETE --------
+    if (input === "delete") {
+        print("Enter ID:");
+        state = "delete";
+        return;
+    }
+
+    if (state === "delete") {
+        let res = Module.ccall("delete_patient","string",
+        ["number"],[input]);
+        print(res);
+        state = "";
+        return;
+    }
+
+    print("❌ Unknown command");
 }
 
 </script>
