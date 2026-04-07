@@ -1,122 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Clinic Terminal</title>
-
-<style>
-body {
-    margin: 0;
-    font-family: monospace;
-    background: radial-gradient(circle, #020617, #000);
-    color: #00ff9f;
-}
-
-/* Container */
-.container {
-    max-width: 900px;
-    margin: 40px auto;
-}
-
-/* Title */
-.title {
-    font-size: 28px;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-/* Terminal */
-.terminal {
-    background: #020617;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 0 20px #00ff9f33;
-}
-
-/* Output */
-#output {
-    min-height: 300px;
-    white-space: pre-line;
-    margin-bottom: 10px;
-}
-
-/* Input */
-.input-line {
-    display: flex;
-}
-
-.input-line span {
-    margin-right: 5px;
-}
-
-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: #00ff9f;
-    outline: none;
-}
-
-/* Buttons */
-.commands {
-    margin-top: 15px;
-}
-
-button {
-    margin: 5px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: none;
-    background: #00ff9f22;
-    color: #00ff9f;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #00ff9f;
-    color: black;
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-<div class="title">🏥 Clinic Terminal</div>
-
-<div class="terminal">
-
-<div id="output">
-Welcome to Clinic System
-
-Commands:
-register id name age phone
-visit id date diagnosis prescription
-history id
-edit id name age phone
-delete id
-</div>
-
-<div class="input-line">
-<span>></span>
-<input id="cmd" placeholder="Type command..." onkeydown="handleEnter(event)">
-</div>
-
-<div class="commands">
-<button onclick="quick('register')">Register</button>
-<button onclick="quick('visit')">Visit</button>
-<button onclick="quick('history')">History</button>
-<button onclick="quick('edit')">Edit</button>
-<button onclick="quick('delete')">Delete</button>
-</div>
-
-</div>
-
-</div>
-
-<!-- WASM -->
 <script>
+
 var Module = {};
 let ready = false;
 
@@ -124,84 +7,174 @@ Module.onRuntimeInitialized = function() {
     ready = true;
     print("✅ System Ready");
 };
-</script>
 
-<script src="clinic.js"></script>
-
-<script>
-
-// Print to terminal
+// Terminal print
 function print(text) {
     output.innerText += "\n" + text;
 }
 
+// State machine
+let state = "";
+let tempData = {};
+
 // Enter key
 function handleEnter(e) {
     if (e.key === "Enter") {
-        runCommand(cmd.value);
+        processInput(cmd.value);
         cmd.value = "";
     }
 }
 
-// Quick buttons
-function quick(type) {
-    cmd.value = type + " ";
-    cmd.focus();
-}
-
-// Main command handler
-function runCommand(input) {
+// Main logic
+function processInput(input) {
 
     if (!ready) {
         print("⚠️ System not ready");
         return;
     }
 
-    let parts = input.split(" ");
-    let command = parts[0];
+    // STEP FLOW
+    switch(state) {
 
-    let result = "";
+        // -------- REGISTER FLOW --------
+        case "reg_id":
+            tempData.id = input;
+            print("Enter Name:");
+            state = "reg_name";
+            return;
 
-    switch(command) {
+        case "reg_name":
+            tempData.name = input;
+            print("Enter Age:");
+            state = "reg_age";
+            return;
+
+        case "reg_age":
+            tempData.age = input;
+            print("Enter Phone:");
+            state = "reg_phone";
+            return;
+
+        case "reg_phone":
+            tempData.phone = input;
+
+            let res = Module.ccall("register_patient","string",
+            ["number","string","number","string"],
+            [tempData.id, tempData.name, tempData.age, tempData.phone]);
+
+            print(res);
+            state = "";
+            return;
+
+        // -------- VISIT FLOW --------
+        case "visit_id":
+            tempData.id = input;
+            print("Enter Date:");
+            state = "visit_date";
+            return;
+
+        case "visit_date":
+            tempData.date = input;
+            print("Enter Diagnosis:");
+            state = "visit_diag";
+            return;
+
+        case "visit_diag":
+            tempData.diag = input;
+            print("Enter Prescription:");
+            state = "visit_pres";
+            return;
+
+        case "visit_pres":
+            tempData.pres = input;
+
+            let res2 = Module.ccall("add_visit","string",
+            ["number","string","string","string"],
+            [tempData.id, tempData.date, tempData.diag, tempData.pres]);
+
+            print(res2);
+            state = "";
+            return;
+
+        // -------- EDIT FLOW --------
+        case "edit_id":
+            tempData.id = input;
+            print("Enter Name (or press Enter to skip):");
+            state = "edit_name";
+            return;
+
+        case "edit_name":
+            tempData.name = input;
+            print("Enter Age (or press Enter to skip):");
+            state = "edit_age";
+            return;
+
+        case "edit_age":
+            tempData.age = input ? parseInt(input) : 0;
+            print("Enter Phone (or press Enter to skip):");
+            state = "edit_phone";
+            return;
+
+        case "edit_phone":
+            tempData.phone = input;
+
+            let res3 = Module.ccall("edit_patient","string",
+            ["number","string","number","string"],
+            [tempData.id, tempData.name || "", tempData.age, tempData.phone || ""]);
+
+            print(res3);
+            state = "";
+            return;
+    }
+
+    // -------- COMMANDS --------
+    switch(input.toLowerCase()) {
 
         case "register":
-            result = Module.ccall("register_patient","string",
-            ["number","string","number","string"],
-            [parts[1], parts[2], parts[3], parts[4]]);
+            print("Enter ID:");
+            state = "reg_id";
             break;
 
         case "visit":
-            result = Module.ccall("add_visit","string",
-            ["number","string","string","string"],
-            [parts[1], parts[2], parts[3], parts[4]]);
+            print("Enter Patient ID:");
+            state = "visit_id";
             break;
 
         case "history":
-            result = Module.ccall("get_history","string",
-            ["number"], [parts[1]]);
+            print("Enter ID:");
+            state = "history";
             break;
 
         case "edit":
-            let age = parts[3] ? parseInt(parts[3]) : 0;
-            result = Module.ccall("edit_patient","string",
-            ["number","string","number","string"],
-            [parts[1], parts[2] || "", age, parts[4] || ""]);
+            print("Enter ID:");
+            state = "edit_id";
             break;
 
         case "delete":
-            result = Module.ccall("delete_patient","string",
-            ["number"], [parts[1]]);
+            print("Enter ID:");
+            state = "delete";
             break;
 
         default:
-            result = "❌ Unknown command";
-    }
 
-    print("> " + input);
-    print(result);
+            if (state === "history") {
+                let res = Module.ccall("get_history","string",
+                ["number"], [input]);
+                print(res);
+                state = "";
+            }
+
+            else if (state === "delete") {
+                let res = Module.ccall("delete_patient","string",
+                ["number"], [input]);
+                print(res);
+                state = "";
+            }
+
+            else {
+                print("❌ Unknown command");
+            }
+    }
 }
 
 </script>
-
-</body>
-</html>
